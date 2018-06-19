@@ -36,3 +36,11 @@ You can use the following command line options with the downloadable version of 
 -port value — The port number that DynamoDB uses to communicate with your application. If you don't specify this option, the default port is 8000.
 
 -sharedDb — If you specify -sharedDb, DynamoDB uses a single database file instead of separate files for each credential and region.
+
+## Working with the local DynamoDB
+
+Get the tables:
+
+```bash
+aws dynamodb list-tables --endpoint-url http://localhost:8000
+```
