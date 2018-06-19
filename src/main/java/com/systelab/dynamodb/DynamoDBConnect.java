@@ -1,6 +1,7 @@
 package com.systelab.dynamodb;
 
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
@@ -17,73 +18,90 @@ public class DynamoDBConnect {
     AmazonDynamoDB client;
     DynamoDB dynamoDB;
 
-    public DynamoDBConnect() {
-        client = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "eu-central-1"))
-                .build();
+    public DynamoDBConnect(boolean isLocal) {
+        if (isLocal) {
+            client = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(
+                    new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "eu-central-1"))
+                    .build();
+        } else {
+            client = AmazonDynamoDBClientBuilder.standard()
+                    .withRegion(Regions.EU_CENTRAL_1)
+                    .build();
+        }
         dynamoDB = new DynamoDB(client);
     }
 
-    public void createTable(String tableName) {
-        List<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
-        attributeDefinitions.add(new AttributeDefinition().withAttributeName("Id").withAttributeType("N"));
-
-        List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
-        keySchema.add(new KeySchemaElement().withAttributeName("Id").withKeyType(KeyType.HASH));
-
-        CreateTableRequest request = new CreateTableRequest()
-                .withTableName(tableName)
-                .withKeySchema(keySchema)
-                .withAttributeDefinitions(attributeDefinitions)
-                .withProvisionedThroughput(new ProvisionedThroughput()
-                        .withReadCapacityUnits(5L)
-                        .withWriteCapacityUnits(6L));
-
-        Table table = dynamoDB.createTable(request);
-
-        try {
-            table.waitForActive();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void updateTable(String tableName) {
-        Table table = dynamoDB.getTable(tableName);
-        ProvisionedThroughput provisionedThroughput = new ProvisionedThroughput()
-                .withReadCapacityUnits(15L)
-                .withWriteCapacityUnits(12L);
-        table.updateTable(provisionedThroughput);
-
-        try {
-            table.waitForActive();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void deleteTable(String tableName) {
-        Table table = dynamoDB.getTable(tableName);
-        table.delete();
-        try {
-            table.waitForDelete();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void getTables() {
-        TableCollection<ListTablesResult> tables = dynamoDB.listTables();
-        Iterator<Table> iterator = tables.iterator();
+        try {
+            TableCollection<ListTablesResult> tables = dynamoDB.listTables();
+            Iterator<Table> iterator = tables.iterator();
 
-        while (iterator.hasNext()) {
-            Table table = iterator.next();
-            System.out.println(table.getTableName());
+            while (iterator.hasNext()) {
+                Table table = iterator.next();
+                System.out.println(table.getTableName());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
+    }
+
+    public boolean createTable(String tableName, Long readCapacityUnits, Long writeCapacityUnits) {
+        try {
+            List<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
+            attributeDefinitions.add(new AttributeDefinition().withAttributeName("Id").withAttributeType("N"));
+
+            List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
+            keySchema.add(new KeySchemaElement().withAttributeName("Id").withKeyType(KeyType.HASH));
+
+            CreateTableRequest request = new CreateTableRequest()
+                    .withTableName(tableName)
+                    .withKeySchema(keySchema)
+                    .withAttributeDefinitions(attributeDefinitions)
+                    .withProvisionedThroughput(new ProvisionedThroughput()
+                            .withReadCapacityUnits(readCapacityUnits)
+                            .withWriteCapacityUnits(writeCapacityUnits));
+
+            Table table = dynamoDB.createTable(request);
+
+            table.waitForActive();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean updateTable(String tableName, Long readCapacityUnits, Long writeCapacityUnits) {
+        try {
+            Table table = dynamoDB.getTable(tableName);
+            ProvisionedThroughput provisionedThroughput = new ProvisionedThroughput()
+                    .withReadCapacityUnits(readCapacityUnits)
+                    .withWriteCapacityUnits(writeCapacityUnits);
+            table.updateTable(provisionedThroughput);
+
+            table.waitForActive();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean deleteTable(String tableName) {
+        try {
+            Table table = dynamoDB.getTable(tableName);
+
+            table.delete();
+            table.waitForDelete();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     public static void main(String[] args) {
-        DynamoDBConnect connect = new DynamoDBConnect();
-        connect.createTable("Table1");
+        DynamoDBConnect connect = new DynamoDBConnect(true);
+        connect.createTable("Table1",1L,1L);
     }
 }
