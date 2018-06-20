@@ -13,12 +13,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class DynamoDBConnect {
+public class DynamoDBTableManagement {
 
     AmazonDynamoDB client;
     DynamoDB dynamoDB;
 
-    public DynamoDBConnect(boolean isLocal) {
+    public DynamoDBTableManagement(boolean isLocal) {
         if (isLocal) {
             client = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(
                     new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "eu-central-1"))
@@ -101,7 +101,7 @@ public class DynamoDBConnect {
     }
 
     public static void main(String[] args) {
-        DynamoDBConnect connect = new DynamoDBConnect(true);
-        connect.createTable("Table1",1L,1L);
+        DynamoDBTableManagement tableManagement = new DynamoDBTableManagement(true);
+        tableManagement.createTable("Table1",1L,1L);
     }
 }
