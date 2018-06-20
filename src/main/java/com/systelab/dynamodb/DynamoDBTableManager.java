@@ -1,10 +1,5 @@
 package com.systelab.dynamodb;
 
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableCollection;
 import com.amazonaws.services.dynamodbv2.model.*;
@@ -13,22 +8,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class DynamoDBTableManagement {
+public class DynamoDBTableManager extends DynamoDBManager {
 
-    AmazonDynamoDB client;
-    DynamoDB dynamoDB;
-
-    public DynamoDBTableManagement(boolean isLocal) {
-        if (isLocal) {
-            client = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(
-                    new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "eu-central-1"))
-                    .build();
-        } else {
-            client = AmazonDynamoDBClientBuilder.standard()
-                    .withRegion(Regions.EU_CENTRAL_1)
-                    .build();
-        }
-        dynamoDB = new DynamoDB(client);
+    public DynamoDBTableManager(boolean isLocal) {
+        super(isLocal);
     }
 
     public void getTables() {
@@ -101,7 +84,7 @@ public class DynamoDBTableManagement {
     }
 
     public static void main(String[] args) {
-        DynamoDBTableManagement tableManagement = new DynamoDBTableManagement(true);
-        tableManagement.createTable("Table1",1L,1L);
+        DynamoDBTableManager tableManagement = new DynamoDBTableManager(true);
+        tableManagement.createTable("ProductCatalog", 1L, 1L);
     }
 }
