@@ -5,7 +5,6 @@ import com.amazonaws.services.dynamodbv2.document.TableCollection;
 import com.amazonaws.services.dynamodbv2.model.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class DynamoDBTableManager extends DynamoDBManager {
@@ -17,12 +16,7 @@ public class DynamoDBTableManager extends DynamoDBManager {
     public void getTables() {
         try {
             TableCollection<ListTablesResult> tables = dynamoDB.listTables();
-            Iterator<Table> iterator = tables.iterator();
-
-            while (iterator.hasNext()) {
-                Table table = iterator.next();
-                System.out.println(table.getTableName());
-            }
+            tables.forEach(System.out::println);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
